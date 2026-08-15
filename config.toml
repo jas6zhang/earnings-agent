@@ -1,0 +1,71 @@
+# SEC requires a real User-Agent identifying you, with a contact address.
+# They will rate-limit or block requests that omit it or use a fake one.
+# See https://www.sec.gov/os/webmaster-faq#developers
+[edgar]
+user_agent = "CHANGE ME - Your Name your.email@example.com"
+# SEC's published ceiling is 10 req/sec. Stay under it.
+requests_per_second = 8.0
+
+[llm]
+# Default is Google AI Studio's free tier: no credit card, ~1500 requests/day,
+# 1M context. Far more headroom than a watchlist needs. Get a key at
+# https://aistudio.google.com/apikey and export it as GEMINI_API_KEY.
+#
+# Note: on Google's FREE tier, prompts are used to improve their products (the
+# paid tier is not). Everything sent here is a public SEC filing, so that is
+# fine - but do not point this at anything non-public without switching tiers.
+#
+# Without a key the agent still runs and emits exact XBRL figures, just no
+# narrative guidance extraction.
+provider = "openai-compat"
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+api_key_env = "GEMINI_API_KEY"
+model = "gemini-2.5-flash"
+max_tokens = 8192
+
+# Run `earnings-agent models` to list what your key can actually reach - newer
+# Gemini 3.x Flash models are also free and likely better at this task.
+#
+# Other free providers, same interface, just swap these three lines:
+#   Groq        base_url = "https://api.groq.com/openai/v1"
+#               api_key_env = "GROQ_API_KEY"
+#   OpenRouter  base_url = "https://openrouter.ai/api/v1"
+#               api_key_env = "OPENROUTER_API_KEY"   (model needs a ":free" suffix)
+#   Ollama      base_url = "http://localhost:11434/v1"
+#
+# To use Claude instead:
+#   provider = "anthropic"
+#   api_key_env = "ANTHROPIC_API_KEY"
+#   model = "claude-opus-5"
+#   max_tokens = 16000   (thinking is on by default and counts against this)
+
+[watchlist]
+# Tickers to monitor. Keep this small to start - every ticker is a poll cycle.
+tickers = [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "GOOGL",
+    "AMZN",
+]
+
+# Peer groups for the thesis layer. Declared, not inferred: SEC SIC codes put
+# SanDisk in "Computer Storage Devices" and Micron in "Semiconductors", which
+# splits exactly the two companies whose NAND commentary belongs side by side.
+#
+# A ticker can appear in several groups; the union is used. A thesis on a
+# cyclical name with no peers is reasoning from a fraction of the picture.
+[peers]
+nand = ["SNDK", "MU", "WDC", "STX"]
+ai-semis = ["NVDA", "AMD", "AVGO"]
+hyperscalers = ["MSFT", "GOOGL", "AMZN", "META"]
+
+[thesis]
+# Theses are speculative and hard to verify, so this is separately configurable
+# from extraction - point it at a stronger model than the free one if you have
+# a key. Defaults to llm.model.
+# model = "claude-opus-5"
+
+[output]
+# Where rendered markdown briefs get written.
+dir = "briefs"

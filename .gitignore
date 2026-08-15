@@ -1,0 +1,14 @@
+# Virtualenv
+.venv/
+
+# Local state — the SQLite store and generated briefs are yours, not the repo's
+earnings.db
+briefs/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+build/
